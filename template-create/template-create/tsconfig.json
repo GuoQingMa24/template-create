@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "es6",//编译的JS的版本
+    "module": "commonjs",//模块的系统
+    "outDir": "./dist",//打包目录
+    "rootDir": "./src",//源代码目录
+    "esModuleInterop": true,//兼容CJS 和 ESModule
+    "declaration": true,//生成类型声明文件
+    "declarationDir": "./types",
+    "baseUrl": ".",//模块解析的基准路径
+    "paths": {
+      "@/*": ["src/*"]
+    }//别名路径
+  },
+  "include": ["src/**/*"],//指定TS哪个路径下的文件要进行编译
+  "exclude": ["node_modules", "dist"],//忽略哪些文件
+  "files": ["src/**/*"]
+}
