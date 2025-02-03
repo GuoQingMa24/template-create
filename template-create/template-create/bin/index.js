@@ -1,15 +1,12 @@
 #!/usr/bin/env node
 
 const { program } = require('commander');
-const figlet = require("figlet");
 const chalk = require("chalk");
 const fs = require('fs-extra');
 const path = require('path');
 const inquirer = require('inquirer');
-const gitClone = require('git-clone');
 const ora = require('ora');
-const degit = require('degit')
-
+const degit = require('degit');
 const ProjectList={
 
         'vue':'git@github.com:kfc-vme50/vue-template.git',
@@ -39,24 +36,24 @@ program.command('create <app-name>')
        const targetPath = path.join(process.cwd(),name);
        console.log(targetPath);
        //2.判断是否存在
-       //  if(fs.pathExistsSync(targetPath))
-       //  {
-       //      //3.用一个常量来接收输入的结果
-       //      const answer = await inquirer.prompt([
-       //          {
-       //              type:'confirm',
-       //              message:chalk.red('该目录下已存在相同文件名的文件是否进行覆盖?'),
-       //              default:false,
-       //              name:'overwrite'
-       //          }
-       //
-       //      ])
-       //      //4.对常量中的overwrite的布尔值进行判断
-       //      if(answer.overwrite){
-       //          fs.remove(targetPath);
-       //          console.log(chalk.green('删除成功！'));
-       //      }
-       //  }
+        if(fs.pathExistsSync(targetPath))
+        {
+            //3.用一个常量来接收输入的结果
+            const answer = await inquirer.prompt([
+                {
+                    type:'confirm',
+                    message:chalk.red('该目录下已存在相同文件名的文件是否进行覆盖?'),
+                    default:false,
+                    name:'overwrite'
+                }
+
+            ])
+            //4.对常量中的overwrite的布尔值进行判断
+            if(answer.overwrite){
+                fs.remove(targetPath);
+                console.log(chalk.green('删除成功！'));
+            }
+        }
 
         //5.新建一个项目
 
@@ -132,34 +129,30 @@ program.command('create <app-name>')
     console.log(key);
     const repoURL = ProjectList[key];
         const spinner = ora(chalk.yellow('正在下载模板，请稍候...')).start(); // 显示加载动画
-
-        // gitClone(repoURL, name, { checkout: 'main' }, function (err) {
-        //     if (err) {
-        //         // 下载失败
-        //         spinner.fail(chalk.red('模板下载失败，请检查仓库地址是否正确！'));
-        //         console.error(chalk.red('错误信息：'), err.message);
-        //     } else {
-        //         // 下载成功
-        //         spinner.succeed(chalk.green('模板下载成功！'));
-        //         fs.remove(path.join(targetPath,'.git'));
-        //         console.log(chalk.green('项目已成功创建，请执行以下的操作：'));
-        //         console.log(chalk.green(`\n cd ${name}`));
-        //         console.log(chalk.green(`npm install`));
-        //         console.log(chalk.green(`npm run dev\n`));
-        //     }
-        // });
-
         const emitter = degit(repoURL,{
             cache:cache1,
             force:force1
+        })
+
+        emitter.on('info',(message)=>{
+            console.log(message);
         });
-        emitter.clone(targetPath)
-            .then(()=>{
-                console.log('克隆成功！');
-            })
-            .catch((error) => {
-                console.error('克隆失败:', error);
-            });
+        emitter.on('warn',(message)=>{
+            console.log('Warning',message);
+        })
+        try{
+            spinner.succeed(chalk.green('模板下载成功！'));
+            await fs.remove(path.join(targetPath, '.git'));
+            console.log(chalk.green('项目已成功创建，请执行以下的操作：'));
+            console.log(chalk.green(`\n cd ${name}`));
+            console.log(chalk.green(`npm install`));
+            console.log(chalk.green(`npm run dev\n`));
+        }catch(error){
+            spinner.fail(chalk.red('模板下载失败，请检查仓库地址是否正确！'));
+
+            console.error(chalk.red('错误信息：'), error.message);
+        }
+
 
     });
 
